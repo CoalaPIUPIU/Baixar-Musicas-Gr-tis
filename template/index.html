@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Baixador de Músicas</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+    input[type="text"] {
+      width: 80%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      background-color: #4b2ed0;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:disabled {
+      background-color: #999;
+      cursor: not-allowed;
+    }
+    #status {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Baixador de Músicas</h2>
+    <input type="text" id="nomeMusica" placeholder="Digite o nome da música">
+    <br>
+    <button id="baixarBtn">Baixar</button>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    const botao = document.getElementById('baixarBtn');
+    const status = document.getElementById('status');
+
+    botao.addEventListener('click', async () => {
+      const nome = document.getElementById('nomeMusica').value.trim();
+      if (!nome) {
+        status.textContent = 'Digite o nome da música!';
+        return;
+      }
+
+      botao.disabled = true;
+      status.textContent = 'Baixando... Isso pode levar alguns segundos.';
+
+      try {
+        const response = await fetch('/baixar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome })
+        });
+
+        if (!response.ok) throw new Error('Erro ao baixar a música.');
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${nome}.mp3`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        status.textContent = 'Download concluído!';
+      } catch (err) {
+        console.error(err);
+        status.textContent = 'Ocorreu um erro ao baixar a música.';
+      } finally {
+        botao.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
