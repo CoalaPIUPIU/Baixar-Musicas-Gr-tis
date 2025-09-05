@@ -35,3 +35,7 @@ def baixar():
     time.sleep(2)
 
     return send_file(arquivo, as_attachment=True)
+from flask_cors import CORS
+
+app = Flask(__name__)
+CORS(app)  # permite requisições de qualquer origem
