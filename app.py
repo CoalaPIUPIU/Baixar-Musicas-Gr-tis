@@ -1,9 +1,11 @@
 import time
 from flask import Flask, request, send_file
+from flask_cors import CORS
 import yt_dlp
 import os
 
 app = Flask(__name__)
+CORS(app)  # Permite requisições de qualquer origem
 
 @app.route("/baixar", methods=["POST"])
 def baixar():
@@ -35,7 +37,7 @@ def baixar():
     time.sleep(2)
 
     return send_file(arquivo, as_attachment=True)
-from flask_cors import CORS
 
-app = Flask(__name__)
-CORS(app)  # permite requisições de qualquer origem
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
