@@ -1,34 +1,39 @@
-from flask import Flask, request, send_file, jsonify
+from flask import Flask, request, send_file
 import yt_dlp
 import os
 
 app = Flask(__name__)
 
 @app.route("/baixar", methods=["POST"])
-def baixar_musica():
-    data = request.json
+def baixar():
+    # Pega o JSON enviado pelo frontend ou pelo curl
+    data = request.get_json()
     nome_musica = data.get("nome")
-
+    
     if not nome_musica:
-        return jsonify({"erro": "Nenhum nome de música informado"}), 400
+        return {"erro": "Nenhuma música informada"}, 400
 
+    # Configuração do yt_dlp para baixar MP3
     ydl_opts = {
-        "format": "bestaudio/best",
-        "outtmpl": "%(title)s.%(ext)s",
-        "postprocessors": [{
-            "key": "FFmpegExtractAudio",
-            "preferredcodec": "mp3",
-            "preferredquality": "192",
+        'format': 'bestaudio/best',
+        'outtmpl': '%(title)s.%(ext)s',  # salva com nome do vídeo
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
         }],
-        "quiet": True
+        'quiet': True
     }
 
+    # Baixa a música do YouTube
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(f"ytsearch1:{nome_musica}", download=True)
-        filename = ydl.prepare_filename(info)
-        mp3_file = os.path.splitext(filename)[0] + ".mp3"
+        arquivo = ydl.prepare_filename(info)
+        arquivo = os.path.splitext(arquivo)[0] + ".mp3"
 
-    return send_file(mp3_file, as_attachment=True)
+    # Retorna o arquivo MP3 para download
+    return send_file(arquivo, as_attachment=True)
 
 if __name__ == "__main__":
+    # Sempre usar host 0.0.0.0 para Render aceitar conexões externas
     app.run(host="0.0.0.0", port=5000)
